@@ -1,0 +1,11 @@
+{
+  "name": "news-sentiment-analysis",
+  "version": "0.0.1",
+  "devDependencies": {
+    "mocha": "~1.21.3",
+    "gulp-mocha": "~0.5.2",
+    "gulp": "~3.8.6",
+    "chai": "~1.9.1",
+    "sinon": "~1.10.3"
+  }
+}
