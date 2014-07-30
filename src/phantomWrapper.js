@@ -1,39 +1,49 @@
 var spawn = require("child_process").spawn;
 var path = require('path');
+var EventEmitter = require("events").EventEmitter;
 
-var phantom;
+var Wrapper = function(args){
+    this.cli = args.cli || false;
+    this.instance;
+};
 
-function init(){
+Wrapper.prototype = Object.create(new EventEmitter());
+
+function init() {
     var args = process.argv.slice(2);
-    execute.apply(this, args);
-}
+    var wrapper = new Wrapper({cli:true});
+    wrapper.execute.apply(wrapper, args);
+};
 
-function execute(){
+Wrapper.prototype.execute = function(){
     var phantomPath = path.join(__dirname + '../bin/phantomjs');
     var args = Array.prototype.slice.call(arguments, 0);
-    phantom = spawn(phantomPath, args);
-    phantom.stdout.on('data', onResponse);
-    phantom.stderr.on('data', onError);
-}
+    this.instance = spawn(phantomPath, args);
+    this.instance.stdout.on('data', this.onResponse.bind(this));
+    this.instance.stderr.on('data', this.onError.bind(this));
+};
 
-function onResponse(data){
-    process.stdout.write(data);
-}
+Wrapper.prototype.onResponse = function(data){
+    if(this.cli){
+        process.stdout.write(data);
+    }else{
+        this.emit("stdout", data);
+    }
+};
 
 function onError(err){
-    if(typeof err !== 'string'){
-        err = JSON.stringify(err);
+    if(this.cli){
+        process.stderr.write(err);
+    }else{
+        this.emit("stderr");
     }
-
-    process.stderr.write(err);
 }
 
 if(require.main === module){
+    cliMode = true;
     init();
 }else{
-    module.exports = {
-        execute : execute
-    }
+    module.exports = Wrapper;
 }
 
 
