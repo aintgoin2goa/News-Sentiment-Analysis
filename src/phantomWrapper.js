@@ -5,10 +5,10 @@ var phantom;
 
 function init(){
     var args = process.argv.slice(2);
-    doCrawl.apply(this, args);
+    execute.apply(this, args);
 }
 
-function doCrawl(){
+function execute(){
     var phantomPath = path.join(__dirname + '../bin/phantomjs');
     var args = Array.prototype.slice.call(arguments, 0);
     phantom = spawn(phantomPath, args);
@@ -32,7 +32,7 @@ if(require.main === module){
     init();
 }else{
     module.exports = {
-        doCrawl : doCrawl
+        execute : execute
     }
 }
 

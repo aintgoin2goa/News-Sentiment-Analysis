@@ -7,8 +7,8 @@ var fs = require('fs');
 var vm = require('vm');
 var FakeChildProcess = require('../helpers/fakeChildProcess.js');
 
-var findUrlsPath = path.resolve('./src/findUrls.js');
-var findUrlsScript = fs.readFileSync(findUrlsPath, {encoding:'utf8'});
+var phantomWrapperPath = path.resolve('./src/phantomWrapper.js');
+var phantomWrapperScript = fs.readFileSync(phantomWrapperPath, {encoding:'utf8'});
 var sandbox = vm.createContext();
 var globalMocks = {};
 var requireFake = function(module){
@@ -19,13 +19,13 @@ var requireFake = function(module){
         return _require(module);
     }
 };
-var argvBase = ['node', findUrlsPath];
+var argvBase = ['node', phantomWrapperPath];
 sandbox.require = requireFake;
 sandbox.module = {exports:{}};
 sandbox.require.main = sandbox.module;
-sandbox.__dirname = findUrlsPath.replace('findUrls.js', '');
+sandbox.__dirname = phantomWrapperPath.replace('phantomWrapper.js', '');
 sandbox.process = {argv : argvBase};
-describe("findUrlsPath", function(){
+describe("phantomWrapper", function(){
 
     afterEach(function(){
         globalMocks = {};
@@ -53,14 +53,14 @@ describe("findUrlsPath", function(){
         var phantomPath = path.resolve('./bin/phantomjs');
         setup();
 
-        vm.runInNewContext(findUrlsScript, sandbox, 'findUrls_proxy.js');
+        vm.runInNewContext(phantomWrapperScript, sandbox, 'proxy.js');
         assert(stub.calledWith(phantomPath), 'expected spawn to be called with ' + phantomPath);
     });
 
     it("should start phantomjs with the correct script, adaptor and keyword", function(){
         setup();
 
-        vm.runInNewContext(findUrlsScript, sandbox, 'findUrls_proxy.js');
+        vm.runInNewContext(phantomWrapperScript, sandbox, 'proxy.js');
         assert(stub.called, 'expected spawn to have been called');
         var args = stub.lastCall.args;
         expect(args[1][0]).to.equal(scriptPath);
@@ -72,7 +72,7 @@ describe("findUrlsPath", function(){
        setup();
         var spy = sinon.spy();
         sandbox.process.stdout = {write : spy};
-        vm.runInNewContext(findUrlsScript, sandbox, 'findUrls_proxy.js');
+        vm.runInNewContext(phantomWrapperScript, sandbox, 'proxy.js');
         fakeProcess.stdout.write(JSON.stringify([]));
         setImmediate(function(){
             assert(spy.called, "expected stdout.write to have been called");
@@ -87,7 +87,7 @@ describe("findUrlsPath", function(){
         var spy = sinon.spy();
         var error = 'Something went wrong';
         sandbox.process.stderr = {write : spy};
-        vm.runInNewContext(findUrlsScript, sandbox, 'findUrls_proxy.js');
+        vm.runInNewContext(phantomWrapperScript, sandbox, 'proxy.js');
         fakeProcess.stderr.write(error);
         setImmediate(function(){
             assert(spy.called, "expected stderr.write to have been called");
