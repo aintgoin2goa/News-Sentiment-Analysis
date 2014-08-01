@@ -8,10 +8,23 @@ gulp.task('test:unit', function () {
         .pipe(mocha({reporter: 'spec'}));
 });
 
+gulp.task('test:int', function () {
+    return gulp.src('test/integration/**/*.js', {read: false})
+        .pipe(mocha({reporter: 'spec'}));
+});
+
 gulp.task('test:unit:debug', function (cb) {
     spawn('node', [
         '--debug-brk',
         path.join(__dirname, 'node_modules/gulp/bin/gulp.js'),
         'test:unit'
+    ], { stdio: 'inherit' });
+});
+
+gulp.task('test:int:debug', function (cb) {
+    spawn('node', [
+        '--debug-brk',
+        path.join(__dirname, 'node_modules/gulp/bin/gulp.js'),
+        'test:int'
     ], { stdio: 'inherit' });
 });

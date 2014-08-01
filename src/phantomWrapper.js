@@ -3,8 +3,8 @@ var path = require('path');
 var EventEmitter = require("events").EventEmitter;
 
 var Wrapper = function(args){
-    this.cli = args.cli || false;
-    this.instance;
+    this.cli = args && args.cli ? args.cli : false;
+    this.instance = null;
 };
 
 Wrapper.prototype = Object.create(new EventEmitter());
@@ -16,7 +16,7 @@ function init() {
 };
 
 Wrapper.prototype.execute = function(){
-    var phantomPath = path.join(__dirname + '../bin/phantomjs');
+    var phantomPath = path.resolve(__dirname, '../bin/phantomjs');
     var args = Array.prototype.slice.call(arguments, 0);
     this.instance = spawn(phantomPath, args);
     this.instance.stdout.on('data', this.onResponse.bind(this));
@@ -24,6 +24,8 @@ Wrapper.prototype.execute = function(){
 };
 
 Wrapper.prototype.onResponse = function(data){
+    data = data.toString();
+    debugger;
     if(this.cli){
         process.stdout.write(data);
     }else{
@@ -31,7 +33,8 @@ Wrapper.prototype.onResponse = function(data){
     }
 };
 
-function onError(err){
+Wrapper.prototype.onError = function(err){
+    err = err.toString();
     if(this.cli){
         process.stderr.write(err);
     }else{
