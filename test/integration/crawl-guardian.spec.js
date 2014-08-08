@@ -1,4 +1,5 @@
 var path = require('path');
+var expect = require('chai').expect;
 
 describe("Crawl Guardian Site", function(){
 
@@ -11,8 +12,9 @@ describe("Crawl Guardian Site", function(){
     });
 
     it("Should crawl the guardian site and return an array of urls matching a given keyword", function(done){
+        this.timeout(5000);
         var crawlPath = path.join(baseUrl, 'crawl.js');
-        wrapper.execute(crawlPath, 'guardian', 'economy');
+        wrapper.execute(crawlPath, 'guardian', 'israel');
         wrapper.on('stdout', function(data){
             console.log(data);
             var urls = JSON.parse(data);

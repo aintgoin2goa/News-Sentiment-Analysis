@@ -1,17 +1,13 @@
 
 exports.crawl = {
-    url : 'https://www.google.co.uk/search?q={keyword}+site:www.theguardian.com&tbm=nws',
+    url : 'http://content.guardianapis.com/search?q={keyword}&from-date={date}&order-by=relevance',
     execute : function(){
-        var urls = [],
-            links = document.querySelectorAll('a.l'),
-            i,l;
-
-        for(i=0,l=links.length; i<l; i++){
-            if(links[i].href){
-                urls.push(links[i].href);
-            }
-        }
-
+        var content = page.plainText;
+        var json = JSON.parse(content);
+        var urls = [];
+        json.response.results.forEach(function(result){
+            urls.push(result.webUrl);
+        });
         return urls;
     }
 };
