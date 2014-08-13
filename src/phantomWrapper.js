@@ -38,7 +38,7 @@ Wrapper.prototype.onError = function(err){
     if(this.cli){
         process.stderr.write(err);
     }else{
-        this.emit("stderr");
+        this.emit("stderr", err);
     }
 }
 

@@ -15,6 +15,7 @@ exports.crawl = {
 exports.extract = {
     execute : function(){
         var extracted = {
+            result : 'success',
             title : '',
             date : null,
             content : ''
@@ -22,12 +23,15 @@ exports.extract = {
         var error = function(txt){
             return {
                 result : 'error',
-                message : text
+                message : txt
             }
         };
-        var titleEl = document.querySelector('h1.content__headline');
-        var dateEl = document.querySelector('content__dateline time');
-        var contentEl =  document.querySelector('.js-article__body');
+        var titleEl = document.getElementsByTagName('h1');
+
+        return page.content;
+
+        var dateEl = document.querySelector('time[itemprop="datePublished"]');
+        var contentEl =  document.querySelector('#article-body-blocks');
         if(!titleEl){
             return error('could not find title');
         }
@@ -41,7 +45,7 @@ exports.extract = {
         }
 
         extracted.title = titleEl.textContent;
-        extracted.date = dateEl.dataset.timestamp;
+        extracted.date = dateEl.dataset.datetime;
         extracted.content = contentEl.textContent;
 
         return extracted;
