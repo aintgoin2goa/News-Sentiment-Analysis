@@ -31,7 +31,6 @@ describe("Guardian Adaptor", function(){
         var extract = path.join(baseUrl, 'extract.js');
         wrapper.execute(extract, 'guardian', url);
         wrapper.on('stdout', function(data){
-            console.log(data);
             var response = JSON.parse(data);
             expect(response.title).to.equal('UK steps up role in Iraq with move to aid Kurds and Yazidis against Isis');
             expect(response.date).to.equal('2014-08-12T22:23BST');

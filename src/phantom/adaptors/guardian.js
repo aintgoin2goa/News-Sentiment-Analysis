@@ -26,10 +26,7 @@ exports.extract = {
                 message : txt
             }
         };
-        var titleEl = document.getElementsByTagName('h1');
-
-        return page.content;
-
+        var titleEl = document.querySelector('h1');
         var dateEl = document.querySelector('time[itemprop="datePublished"]');
         var contentEl =  document.querySelector('#article-body-blocks');
         if(!titleEl){

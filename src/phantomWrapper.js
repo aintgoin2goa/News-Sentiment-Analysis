@@ -25,7 +25,6 @@ Wrapper.prototype.execute = function(){
 
 Wrapper.prototype.onResponse = function(data){
     data = data.toString();
-    debugger;
     if(this.cli){
         process.stdout.write(data);
     }else{

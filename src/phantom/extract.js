@@ -20,7 +20,7 @@ try{
         page.render('test.jpg');
         setTimeout(function(){
             page.render('test2.jpg');
-            var content = adaptor.extract.execute();
+            var content = page.evaluate(adaptor.extract.execute);
 
             if(content.result === 'error'){
                 system.stderr.write(content.message);
