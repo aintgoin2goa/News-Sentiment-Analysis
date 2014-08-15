@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "moment": "~2.8.1",
-    "q": "~1.0.1"
+    "q": "~1.0.1",
+    "Sentimental": "~1.0.1"
   }
 }
