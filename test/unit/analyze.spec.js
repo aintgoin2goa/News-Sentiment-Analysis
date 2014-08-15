@@ -11,7 +11,7 @@ var argvBase = ['node', analyzePath];
 sandbox.process = {argv : argvBase};
 sandbox.require = require;
 
-describe("Analyze", function(){
+describe.only("Analyze", function(){
 
     var content;
 
@@ -26,6 +26,7 @@ describe("Analyze", function(){
                 assert(spy.called);
                 var result = spy.lastCall.args[0];
                 result = JSON.parse(result);
+                console.log(result);
                 expect(result.score).to.equal(-47);
                 done();
             }catch(e){
