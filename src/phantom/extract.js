@@ -9,14 +9,16 @@ try{
     var url = args[1];
     var adaptor = require('./adaptors/' + adaptorName + '.js');
     var page = require('webpage').create();
-    console.log(url);
+
+    page.onError= function(msg){
+        return false;
+    };
 
     page.open(url, function(status){
         if(status === 'fail'){
             system.stderr.write("Failed to open url " + url);
             phantom.exit(1);
         }
-
         page.render('test.jpg');
         setTimeout(function(){
             page.render('test2.jpg');

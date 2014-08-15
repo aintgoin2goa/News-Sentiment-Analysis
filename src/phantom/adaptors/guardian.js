@@ -33,7 +33,7 @@ exports.extract = {
             return error('could not find title');
         }
 
-        if(!dateEl || dateEl.dataset.timestamp){
+        if(!dateEl || !dateEl.getAttribute('datetime')){
             return error('could not find date');
         }
 
@@ -42,7 +42,7 @@ exports.extract = {
         }
 
         extracted.title = titleEl.textContent;
-        extracted.date = dateEl.dataset.datetime;
+        extracted.date = dateEl.getAttribute('datetime');
         extracted.content = contentEl.textContent;
 
         return extracted;

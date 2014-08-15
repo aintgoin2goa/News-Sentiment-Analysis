@@ -10,6 +10,7 @@ function FakeChildProcess(){
     this.stderr.write = function(data){
         process.stderr.emit("data", data);
     };
+    this.on = function(){};
 }
 
 module.exports = FakeChildProcess;
