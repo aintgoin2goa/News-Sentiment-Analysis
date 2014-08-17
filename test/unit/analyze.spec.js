@@ -11,12 +11,12 @@ var argvBase = ['node', analyzePath];
 sandbox.process = {argv : argvBase};
 sandbox.require = require;
 
-describe.only("Analyze", function(){
+describe("Analyze", function(){
 
     var content;
 
 
-    it("Should accept a string of content as an argument and perform sentiment anaysis on it", function(done){
+    it.only("Should accept a string of content as an argument and perform sentiment anaysis on it", function(done){
         content = fs.readFileSync('test/data/guardian-test-content1.txt', {encoding:'utf8'});
         sandbox.process.argv.push(content);
         var spy = sinon.spy();
@@ -27,7 +27,7 @@ describe.only("Analyze", function(){
                 var result = spy.lastCall.args[0];
                 result = JSON.parse(result);
                 console.log(result);
-                expect(result.score).to.equal(-47);
+                expect(result.article.analysis.score).to.equal(-47);
                 done();
             }catch(e){
                 done(e);
