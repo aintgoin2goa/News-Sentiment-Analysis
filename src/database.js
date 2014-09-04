@@ -5,15 +5,15 @@ var Word = require('./models/word.js');
 
 function connect(){
     var dfd = Q.defer();
-    var db = process.env['NSE_DBNAME'] || 'dev';
-    mongoose.connect('mongodb://localhost/' + db);
-    mongoose.connection.on('error', function(){
-        dfd.reject();
+    var name = process.env['NSE_DBNAME'] || 'nse_dev';
+    mongoose.connect('mongodb://localhost:27017/' + name);
+    mongoose.connection.on('error', function(err){
+        dfd.reject(err);
     });
-    mongoose.connection.once('open', function(){
+    mongoose.connection.on('open', function(){
         dfd.resolve();
     });
-    return dfd.promise();
+    return dfd.promise;
 };
 
 function hasArticle(article){
@@ -35,13 +35,13 @@ function hasUrl(url){
 }
 
 function saveArticle(article){
-    return Q.nbind(article.save, article);
+    return Q.nbind(article.save, article)();
 }
 
 function hasWord(publicationId, word){
     var dfd = Q.defer();
     var query = Word.findOne({'publicationId' : publicationId, 'word':word});
-    Q.nbind(query.exec, query).then(
+    Q(query.exec()).then(
         function(result){
             dfd.resolve(result !== null, result);
         },
@@ -54,7 +54,7 @@ function hasWord(publicationId, word){
 
 function updateWord(word){
     word.count +=1;
-    return Q.nbind(word.save, word);
+    return Q.nbind(word.save, word)();
 }
 
 function saveWord(publicationId, wordValue, isPositive){
@@ -63,7 +63,7 @@ function saveWord(publicationId, wordValue, isPositive){
         word : wordValue,
         isPositive : isPositive
     });
-    return Q.nbind(word.save, word);
+    return Q.nbind(word.save, word)();
 }
 
 function saveOrUpdateWord(publicationId, wordValue, isPositive){

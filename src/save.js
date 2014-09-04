@@ -1,18 +1,25 @@
 var database = require('./database.js');
 var Article = require('./models/article.js');
-var input = JSON.parse(process.argv[2]);
-var article;
+var Q = require('q');
 
-function saveArtice(){
-    article = new Article(input.article);
+
+function saveArticle(input, dfd){
+    var article = new Article(input.article);
     database.hasArticle(article)
         .then(function(result){
             return result ? Q(null) : database.saveArticle(article);
         })
-        .done(saveWords, fail);
+        .done(
+            function(){
+                saveWords(input, article, dfd)
+            },
+            function(){
+                dfd.reject();
+            }
+    );
 }
 
-function saveWords(){
+function saveWords(input, article, dfd){
     var promises = [];
     input.words.positive.forEach(function(w){
         promises.push(database.saveOrUpdateWord(article.publication, w, true));
@@ -20,17 +27,29 @@ function saveWords(){
     input.words.negative.forEach(function(w){
         promises.push(database.saveOrUpdateWord(article.publication, w, false));
     });
-    Q.all(promises).then(complete, fail);
+    Q.all(promises).then(
+        function(){
+            dfd.resolve();
+        },
+        function(){
+            dfd.reject();
+        }
+    );
 }
 
-function fail(e){
-    system.stderr.write(e.toString());
-    process.exit(1);
+function save(input){
+    input = JSON.parse(input);
+    var dfd = Q.defer();
+    database.connect().then(
+        function(){
+            saveArticle(input, dfd);
+        },
+        function(err){
+            dfd.reject(err);
+        }
+    );
+    return dfd.promise;
 }
 
-function complete(){
-   process.exit(0);
-}
-
-database.connect().then(saveArticle, fail);
+module.exports = save;
 

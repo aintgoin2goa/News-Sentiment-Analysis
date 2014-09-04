@@ -1,43 +1,58 @@
-var expect = require('chai').expect;
-var sinon = require('sinon');
-var assert = require('assert');
-var path = require('path');
-var fs = require('fs');
-var vm = require('vm');
-var sandbox = vm.createContext();
-var savePath = path.resolve('./src/save.js');
-var saveScript = fs.readFileSync(savePath, {encoding:'utf8'});
-var argvBase = ['node', savePath];
-sandbox.process = {argv : argvBase};
-sandbox.system = {stdout:{write:sinon.spy()},stderr:{write:sinon.spy()}};
-var globalMocks = {};
-var requireFake = function(module){
-    var _require = require;
-    if(module in globalMocks){
-        return globalMocks[module];
-    }else{
-        return _require(module);
-    }
-};
-sandbox.require = requireFake;
-globalMocks['./database.js'] = sinon.spy();
-var testData = fs.readFileSync('test/test-analysis-result1.txt', {encoding:'utf8'});
-sandbox.process.argv.push(testData);
+describe
+("Save", function(){
 
-describe("Save", function(){
+    var sinon = require('sinon');
+    var assert = require('assert');
+    var path = require('path');
+    var fs = require('fs');
+    var Q = require('q');
+    var loader = require('../helpers/moduleLoader.js');
 
-    it('Should save a new article to the database', function(){
-        sandbox.process.exit = function(exitCode){
-            expect(exitCode).to.equal(0);
-            assert(globalMocks['./database.js'].saveArticle.called);
+    var testData = fs.readFileSync('test/data/test-analysis-result1.txt', {encoding:'utf8'});
+    var testDataObj = JSON.parse(testData);
+
+    var save, databaseMock;
+
+    beforeEach(function(done){
+        this.timeout(10000);
+        databaseMock = {
+            connect : sinon.stub().returns(Q(null)),
+            hasArticle : sinon.stub().returns(Q(false)),
+            saveArticle : sinon.stub().returns(Q(null)),
+            saveOrUpdateWord : sinon.stub().returns(Q(null))
         };
-        vm.runInNewContext(saveScript, sandbox, 'save.js');
+        save = loader.loadModule('src/save.js', {'./database.js' : databaseMock}, 'save.js').module.exports;
+        done();
     });
 
-    it('Should update the article if it already exists');
 
-    it('Should save a word to the words collection');
+    it('Should save a new article to the database', function(done){
+        save(testData).then(function(){
+            assert(databaseMock.saveArticle.called);
+            done();
+        }, function(){
+            done(new Error("Fail callback fired"));
+        });
+    });
 
-    it('Should update the count if the word already exists');
+    it('Should not save the article if it already exists', function(){
+        databaseMock.saveArticle.returns(Q(false));
+        save(testData).then(function(){
+            assert(databaseMock.saveArticle.callCount === 0);
+            done();
+        }, function(){
+            done(new Error("Fail callback fired"));
+        });
+    });
 
+    it('Should update the words collection', function(){
+        var words = testDataObj.words.positive.concat(testDataObj.words.negative);
+        save(testData).then(function(){
+            assert(databaseMock.saveOrUpdateWord.callCount === words.length);
+            done();
+        }, function(){
+            done(new Error("Fail callback fired"));
+        });
+
+    });
 });
