@@ -16,10 +16,14 @@ function connect(){
     return dfd.promise;
 };
 
+function disconnect(){
+    return Q.nbind(mongoose.disconnect, mongoose)();
+}
+
 function hasArticle(article){
     var dfd = Q.defer();
     var query = Article.findOne({'url' : article.url});
-    Q.nbind(query.exec, query).then(
+    Q.nbind(query.exec, query)().then(
         function(result){
             dfd.resolve(result !== null);
         },
@@ -40,10 +44,11 @@ function saveArticle(article){
 
 function hasWord(publicationId, word){
     var dfd = Q.defer();
-    var query = Word.findOne({'publicationId' : publicationId, 'word':word});
-    Q(query.exec()).then(
+    var query = Word.findOne({'publication' : publicationId, 'word':word});
+    query.exec().then(
         function(result){
-            dfd.resolve(result !== null, result);
+            debugger;
+            dfd.resolve([result != null, result]);
         },
         function(err){
             dfd.reject(err);
@@ -61,7 +66,8 @@ function saveWord(publicationId, wordValue, isPositive){
     var word = new Word({
        publication : publicationId,
         word : wordValue,
-        isPositive : isPositive
+        isPositive : isPositive,
+        count : 1
     });
     return Q.nbind(word.save, word)();
 }
@@ -69,12 +75,14 @@ function saveWord(publicationId, wordValue, isPositive){
 function saveOrUpdateWord(publicationId, wordValue, isPositive){
     var dfd = Q.defer();
     hasWord(publicationId, wordValue)
-        .then(function(result, word){
-            return result ? updateWord(word) : saveWord(publicationId, wordValue, isPositive)
+        .then(function(args){
+            var result = args[0], word = args[1];
+            return result ? updateWord(word) : saveWord(publicationId, wordValue, isPositive);
         })
         .then(function(){
             dfd.resolve();
-        }, function(){
+        })
+        .fail(function(){
            dfd.reject();
         });
 
@@ -85,6 +93,7 @@ function saveOrUpdateWord(publicationId, wordValue, isPositive){
 
 module.exports = {
     connect : connect,
+    disconnect : disconnect,
     hasArticle : hasArticle,
     hasUrl : hasUrl,
     saveArticle : saveArticle,

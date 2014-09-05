@@ -5,11 +5,12 @@ var expect = require('chai').expect;
 var Q = require('q');
 var fakeArticle = require('../helpers/fakeArticle');
 var Article = require('../../src/models/article.js');
+var Word = require('../../src/models/word.js');
 
 
-describe.only('Database', function(){
+describe('Database', function(){
 
-    var sandbox, database, databaseScript, globalMocks;
+    var database;
 
     function saveArticle(){
         var dfd = Q.defer();
@@ -18,6 +19,7 @@ describe.only('Database', function(){
            database.saveArticle(article).then(function(){
               dfd.resolve();
            }, function(err){
+               console.log(err);
                dfd.reject(err);
            });
         });
@@ -25,42 +27,22 @@ describe.only('Database', function(){
     }
 
     before(function(){
-        sandbox = vm.createContext();
-        sandbox.require = require;
-        sandbox.process = {env : {}};
-        sandbox.process.env['NSE_DBNAME'] = 'nse_test';
-        sandbox.module = {exports : {}};
-        globalMocks = {};
-        var requireFake = function(module){
-            var _require = require;
-            if(module in globalMocks){
-                return globalMocks[module];
-            }else{
-                if(module.indexOf('./') === 0){
-                    return _require('../../src/' + module);
-                }else{
-                    return _require(module);
-                }
-            }
-        };
-        sandbox.require = requireFake;
-        var databasePath =  path.resolve('./src/database.js');
-        databaseScript = fs.readFileSync(databasePath, {encoding:'utf8'});
-
+        process.env["NSE_DBNAME"] = 'nse_test';
+        database = require('../../src/database.js');
     });
 
     beforeEach(function(){
         this.timeout(5000);
-        vm.runInNewContext(databaseScript, sandbox, 'database,js');
     });
 
     afterEach(function(){
         new Article().collection.drop();
+        new Word().collection.drop();
+        return database.disconnect();
     });
 
     it("Should connect to the database", function(done){
         this.timeout(5000);
-        database = sandbox.module.exports;
         database.connect().then(
             function(){
                 expect(true).to.equal(true);
@@ -72,35 +54,72 @@ describe.only('Database', function(){
 
     it('Should save a new article to the database', function(done){
         this.timeout(5000);
-        database = sandbox.module.exports;
-        saveArticle().then(
-            function(){
-                Article.find({}, function(err, results){
-                    if(err){
-                        done(err);
-                        return;
-                    }
-
-                    expect(results.length).to.equal(1);
-                    done();
-                })
-            },
-           done
-        );
+        saveArticle().then(function(){
+            Article.find({}, function(err, results){
+                if(err){
+                    done(err);
+                    return;
+                }
+                expect(results.length).to.equal(1);
+                done();
+            });
+        },done);
     });
 
-    it('Should check if an article exists in the database', function(){
-
-
+    it('Should check if an article exists in the database', function(done){
+        this.timeout(5000);
+        saveArticle().then(function() {
+            database.hasArticle(fakeArticle()).then(function(result){
+                expect(result).to.equal(true);
+                done();
+            }, done);
+        }, done);
     });
 
+    it('Should check if a given url exists in the database', function(done){
+        this.timeout(5000);
+        saveArticle().then(function() {
+            database.hasUrl('http://publication.com/').then(function(result){
+                expect(result).to.equal(true);
+                done();
+            }, done);
+        }, done);
+    });
 
+    it('Should be able to save a new word to the database', function(done){
+        database.connect().then(function(){
+            return database.saveOrUpdateWord('publicationid', 'love', true);
+        }).then(function(){
+            Word.find({}, function(err, results){
+               if(err){
+                   done(err);
+                   return;
+               }
 
-    it('Should check if a given url exists in the database');
+                expect(results.length).to.equal(1);
+                done();
+            });
+        }).fail(done);
+    });
 
-    it('Should be a ble to save a new word to the database');
+    it('Should update the count field if saving an existing word', function(done){
+        this.timeout(30000);
+        debugger;
+        database.connect().then(function() {
+            return database.saveOrUpdateWord('publicationid', 'love', true);
+        }).then(function(){
+            return database.saveOrUpdateWord('publicationid', 'love', true);
+        }).then(function(){
+            Word.findOne({word:'love'}, function(err, result){
+                if(err){
+                    done(err);
+                    return;
+                }
+                expect(result.count).to.equal(2);
+                done();
+            });
+        }).fail(function(){
 
-    it('Should update the count field if saving an exiting word');
-
-
+        });
+    });
 });
