@@ -19,6 +19,9 @@ describe('Update', function(){
 
     var PhantomWrapperConstructorMock, phantomWrapperMock, filterMock, saveMock, update, analyzeMock;
 
+    var publication = 'publication',
+        keyword = 'keyword';
+
     beforeEach(function(){
         var executeStub = sinon.stub().returns(Q(testContent));
         executeStub.onCall(0).returns(Q(JSON.stringify(urls)));
@@ -28,14 +31,11 @@ describe('Update', function(){
         saveMock = sinon.stub().returns(Q(null));
         analyzeMock = sinon.stub().returns(analysisResult);
         update = loader.loadModule('src/update.js',
-            {'./phantomWrapper.js' : PhantomWrapperConstructorMock, './filter.js' : filterMock, './save.js':saveMock}, 'update.js').module.exports;
+            {'./phantomWrapper.js' : PhantomWrapperConstructorMock, './filter.js' : filterMock, './save.js':saveMock, './analyze.js' : analyzeMock}, 'update.js').module.exports;
     });
 
-    it.only('Should take a publication id and keyword and pass that to to phantomjs to crawl', function(done){
-        this.timeout(10000);
-        var publication = 'publication',
-            keyword = 'keyword';
-        debugger;
+    it('Should take a publication id and keyword and pass that to to phantomjs to crawl', function(done){
+
         update(publication, keyword).then(function(){
             expect(phantomWrapperMock.execute.firstCall.args[1]).to.equal(publication);
             expect(phantomWrapperMock.execute.firstCall.args[2]).to.equal(keyword);
@@ -43,12 +43,51 @@ describe('Update', function(){
         }, done);
     });
 
-    it('Should pass the results of a crawl onto the filter modules');
+    it('Should pass the results of a crawl onto the filter modules', function(done){
 
-    it('Should take the filtered list of urls and use phantom js to extract the content');
+        update(publication, keyword).then(function(){
+            expect(filterMock.firstCall.args[0]).to.equal(JSON.stringify(urls));
+            done();
+        }, done);
 
-    it('Should call analyze() for each piece of returned content');
+    });
 
-    it('Should pass the results of each analysis to the save() module');
+    it('Should take the filtered list of urls and use phantom js to extract the content', function(done){
+
+        update(publication, keyword).then(function(){
+            try{
+                expect(phantomWrapperMock.execute.args[1][2]).to.equal(urls[0]);
+                expect(phantomWrapperMock.execute.args[2][2]).to.equal(urls[1]);
+                expect(phantomWrapperMock.execute.args[3][2]).to.equal(urls[2]);
+                done();
+            }catch(e){
+                done(e);
+            }
+        }, done)
+    });
+
+    it('Should call analyze() for each piece of returned content', function(done){
+        update(publication, keyword).then(function(){
+            try{
+                expect(analyzeMock.callCount).to.equal(urls.length);
+                expect(analyzeMock.lastCall.args[0]).to.equal(testContent);
+                done();
+            }catch(e){
+                done(e);
+            }
+        }, done);
+    });
+
+    it('Should pass the results of each analysis to the save() module', function(done){
+        update(publication, keyword).then(function(){
+            try{
+                expect(saveMock.callCount).to.equal(urls.length);
+                expect(saveMock.lastCall.args[0]).to.equal(analysisResult);
+                done();
+            }catch(e){
+                done(e);
+            }
+        }, done);
+    });
 
 });
