@@ -104,7 +104,6 @@ describe('Database', function(){
 
     it('Should update the count field if saving an existing word', function(done){
         this.timeout(30000);
-        debugger;
         database.connect().then(function() {
             return database.saveOrUpdateWord('publicationid', 'love', true);
         }).then(function(){
@@ -121,5 +120,21 @@ describe('Database', function(){
         }).fail(function(){
 
         });
+    });
+
+    it('should retrieve the number of articles in the database', function(done){
+        this.timeout(30000);
+       saveArticle().then(function(){
+           return database.articleCount(fakeArticle().publication);
+       }).then(function(count){
+           try{
+               expect(count).to.equal(1);
+               done();
+           }catch(e){
+               done(e);
+           }
+
+       })
+       .fail(done);
     });
 });

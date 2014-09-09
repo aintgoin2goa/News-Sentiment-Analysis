@@ -89,6 +89,11 @@ function saveOrUpdateWord(publicationId, wordValue, isPositive){
     return dfd.promise;
 }
 
+function articleCount(publicationId){
+    var dfd = Q.defer();
+    return Q.nbind(Article.count, Article)({publication:publicationId});
+}
+
 
 
 module.exports = {
@@ -97,6 +102,7 @@ module.exports = {
     hasArticle : hasArticle,
     hasUrl : hasUrl,
     saveArticle : saveArticle,
-    saveOrUpdateWord : saveOrUpdateWord
+    saveOrUpdateWord : saveOrUpdateWord,
+    articleCount : articleCount
 };
 

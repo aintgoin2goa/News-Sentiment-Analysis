@@ -90,4 +90,16 @@ describe('Update', function(){
         }, done);
     });
 
+    it('Should return the total number of new articles added', function(done){
+        update(publication, keyword).then(function(added){
+            try{
+                expect(added).to.equal(urls.length);
+                done();
+            }catch(e){
+                done(e);
+            }
+
+        }, done);
+    })
+
 });

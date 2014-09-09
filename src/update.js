@@ -40,8 +40,8 @@ function update(publication, keyword){
         .then(function(urls){
             return process(urls, publication)
         })
-        .then(function(){
-           dfd.resolve();
+        .then(function(results){
+           dfd.resolve(results.length);
         })
         .fail(function(err){
             dfd.reject(err);
