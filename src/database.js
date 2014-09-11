@@ -1,7 +1,12 @@
+var fs = require('fs');
+var path = require('path');
+
 var Q = require('q');
 var mongoose = require('mongoose');
 var Article = require('./models/article.js');
 var Word = require('./models/word.js');
+var Keyword = require('./models/keyword.js');
+var Publication = require('./models/publication.js');
 
 function connect(){
     var dfd = Q.defer();
@@ -90,10 +95,72 @@ function saveOrUpdateWord(publicationId, wordValue, isPositive){
 }
 
 function articleCount(publicationId){
-    var dfd = Q.defer();
     return Q.nbind(Article.count, Article)({publication:publicationId});
 }
 
+function seedKeywords(){
+    var dfd = Q.defer(),
+        readFile = Q.nfbind(fs.readFile);
+
+    readFile('./seed_data/keywords.txt', {encoding:'utf8'}).then(function(data){
+        var keywords = data.split('\n'),
+            promises = [];
+
+        keywords.forEach(function(value){
+             var keyword = new Keyword({keyword:value});
+             promises.push(Q.nbind(keyword.save, keyword)());
+        });
+
+        return Q.all(promises);
+    })
+    .then(function(){
+       dfd.resolve();
+    })
+    .fail(function(err){
+        dfd.reject(err);
+    });
+
+    return dfd.promise;
+}
+
+function seedPublications(){
+    var dfd = Q.defer(),
+        readdir = Q.nfbind(fs.readdir),
+        directory = './seed_data/publications/';
+
+    readdir(directory)
+        .then(function(files){
+            var promises = [];
+            files.forEach(function(file){
+                var data = require(path.resolve(directory, file)),
+                    publication = new Publication(data);
+
+                promises.push(Q.nbind(publication.save, publication)());
+            });
+
+            return Q.all(promises);
+        })
+        .then(function(){
+            dfd.resolve();
+        })
+        .fail(function(err){
+            dfd.reject(err);
+        });
+
+    return dfd.promise;
+}
+
+function seed(){
+    debugger;
+    var dfd = Q.defer();
+    seedKeywords().then(seedPublications).then(function(){
+        dfd.resolve();
+    }).fail(function(err){
+        dfd.reject(err);
+    });
+
+    return dfd.promise;
+}
 
 
 module.exports = {
@@ -103,6 +170,7 @@ module.exports = {
     hasUrl : hasUrl,
     saveArticle : saveArticle,
     saveOrUpdateWord : saveOrUpdateWord,
-    articleCount : articleCount
+    articleCount : articleCount,
+    seed : seed
 };
 

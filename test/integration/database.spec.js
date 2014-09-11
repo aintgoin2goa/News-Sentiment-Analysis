@@ -6,6 +6,8 @@ var Q = require('q');
 var fakeArticle = require('../helpers/fakeArticle');
 var Article = require('../../src/models/article.js');
 var Word = require('../../src/models/word.js');
+var Keyword = require('../../src/models/keyword.js');
+var Publication = require('../../src/models/publication.js');
 
 
 describe('Database', function(){
@@ -38,6 +40,8 @@ describe('Database', function(){
     afterEach(function(){
         new Article().collection.drop();
         new Word().collection.drop();
+        new Keyword().collection.drop();
+        new Publication().collection.drop();
         return database.disconnect();
     });
 
@@ -137,4 +141,29 @@ describe('Database', function(){
        })
        .fail(done);
     });
+
+    it('Should be able to create keywords and publications documents from the seed data', function(done){
+        var keywords = fs.readFileSync('./seed_data/keywords.txt', {encoding:'utf8'}).split('\n');
+        var pubsdir = './seed_data/publications/';
+        var publicationData = fs.readdirSync(pubsdir).map(function(file){
+            return JSON.parse(fs.readFileSync(path.resolve(pubsdir, file), {encoding:'utf8'}));
+        });
+        this.timeout(30000);
+        database.connect().then(database.seed).then(function(){
+            try{
+                Q.all([
+                    Q.nbind(Keyword.count, Keyword)({}),
+                    Q.nbind(Publication.find, Publication)({})]
+                ).spread(function(keywordCount, publications){
+                        expect(keywordCount).to.equal(keywords.length);
+                        expect(publications.length).to.equal(publicationData.length);
+                        expect(publications[0].id).to.equal(publicationData[0].id);
+                        done();
+                    });
+            }catch(e){
+                done(e);
+            }
+
+        }, done);
+    })
 });

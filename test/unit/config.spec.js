@@ -15,7 +15,7 @@ describe('Config', function(){
         config = loader.loadModule('src/config.js', 'config.js').module.exports;
     });
 
-    it.only('Should load in a list of keywords from a flat file', function(done){
+    it('Should load in a list of keywords from a flat file', function(done){
         config.loadKeywords().then(function(keywords){
             try{
                 keywords.forEach(function(keyword){
@@ -27,6 +27,10 @@ describe('Config', function(){
             }
 
         }, done);
+    });
+
+    it.only('Should load in all publications from the config file', function(done){
+        config.loadPublications()
     });
 
 });
