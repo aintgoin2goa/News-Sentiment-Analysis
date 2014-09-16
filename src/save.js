@@ -3,23 +3,25 @@ var Article = require('./models/article.js');
 var Q = require('q');
 
 
-function saveArticle(input, dfd){
+function saveArticle(input){
     var article = new Article(input.article);
+    var dfd = Q.defer();
     database.hasArticle(article)
         .then(function(result){
             return result ? Q(null) : database.saveArticle(article);
         })
-        .done(
-            function(){
-                saveWords(input, article, dfd)
-            },
-            function(){
-                dfd.reject();
-            }
-    );
+        .then(function(){
+            dfd.resolve(article);
+        })
+        .fail(function(err){
+            dfd.reject(err);
+        });
+
+    return dfd.promise;
 }
 
-function saveWords(input, article, dfd){
+function saveWords(input, article){
+    var dfd = Q.defer();
     var promises = [];
     input.words.positive.forEach(function(w){
         promises.push(database.saveOrUpdateWord(article.publication, w, true));
@@ -29,25 +31,36 @@ function saveWords(input, article, dfd){
     });
     Q.all(promises).then(
         function(){
-            dfd.resolve();
+            dfd.resolve(article);
         },
         function(){
             dfd.reject();
         }
     );
+
+    return dfd.promise;
 }
+
+function updatePublication(article){
+    return database.updatePublication(article.publication, 1, article.analysis.score);
+}
+
 
 function save(input){
     input = JSON.parse(input);
     var dfd = Q.defer();
-    database.connect().then(
-        function(){
-            saveArticle(input, dfd);
-        },
-        function(err){
-            dfd.reject(err);
-        }
-    );
+    database.connect().then(function(){
+        return saveArticle(input)
+    }).then(function(article) {
+        return saveWords(input, article);
+    }).then(function(article){
+        return updatePublication(article);
+    }).then(function(){
+        dfd.resolve();
+    }).fail(function(err){
+        dfd.reject(err);
+    });
+
     return dfd.promise;
 }
 

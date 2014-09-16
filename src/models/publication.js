@@ -5,7 +5,9 @@ var publicationSchema = new Schema({
     id : {type:String, index:{unique:true, dropDupes:true}},
     name : String,
     homepage : String,
-    score : Number
+    totalScore : Number,
+    articleCount: Number,
+    averageScore: Number
 });
 
 module.exports = mongoose.model('Publication', publicationSchema);

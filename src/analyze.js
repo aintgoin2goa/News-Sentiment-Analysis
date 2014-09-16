@@ -2,7 +2,7 @@ var sentimental = require('Sentimental');
 
 
 
-function analyze(input){
+function analyze(input, publication){
     var article = JSON.parse(input);
     var result = sentimental.analyze(article.content);
     var words = {
@@ -19,6 +19,8 @@ function analyze(input){
         positive : result.positive,
         negative : result.negative
     };
+
+    article.publication = publication;
 
     return JSON.stringify({
         article: article,

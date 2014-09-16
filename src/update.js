@@ -21,7 +21,9 @@ function process(urls, publication){
 function processUrl(url, publication){
     var dfd = Q.defer();
     new PhantomWrapper().execute(extract, publication, url)
-        .then(analyze)
+        .then(function(article){
+            return analyze(article, publication);
+        })
         .then(save)
         .then(function(){
             dfd.resolve();

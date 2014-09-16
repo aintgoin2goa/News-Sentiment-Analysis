@@ -3,6 +3,7 @@ describe
 
     var sinon = require('sinon');
     var assert = require('assert');
+    var expect = require('chai').expect;
     var path = require('path');
     var fs = require('fs');
     var Q = require('q');
@@ -19,7 +20,8 @@ describe
             connect : sinon.stub().returns(Q(null)),
             hasArticle : sinon.stub().returns(Q(false)),
             saveArticle : sinon.stub().returns(Q(null)),
-            saveOrUpdateWord : sinon.stub().returns(Q(null))
+            saveOrUpdateWord : sinon.stub().returns(Q(null)),
+            updatePublication : sinon.stub().returns(Q(null))
         };
         save = loader.loadModule('src/save.js', {'./database.js' : databaseMock}, 'save.js').module.exports;
         done();
@@ -35,17 +37,22 @@ describe
         });
     });
 
-    it('Should not save the article if it already exists', function(){
-        databaseMock.saveArticle.returns(Q(false));
+    it('Should not save the article if it already exists', function(done){
+        databaseMock.hasArticle.returns(Q(true));
         save(testData).then(function(){
-            assert(databaseMock.saveArticle.callCount === 0);
-            done();
-        }, function(){
-            done(new Error("Fail callback fired"));
+            try{
+                expect(databaseMock.saveArticle.callCount).to.equal(0);
+                done();
+            }catch(e){
+                done(e);
+            }
+
+        }, function(e){
+            done(e);
         });
     });
 
-    it('Should update the words collection', function(){
+    it('Should update the words collection', function(done){
         var words = testDataObj.words.positive.concat(testDataObj.words.negative);
         save(testData).then(function(){
             assert(databaseMock.saveOrUpdateWord.callCount === words.length);
@@ -54,5 +61,19 @@ describe
             done(new Error("Fail callback fired"));
         });
 
+    });
+
+    it('Should update the publication object with the new score and article count', function(done){
+        save(testData).then(function(){
+            try{
+                assert(databaseMock.updatePublication.calledWith(testDataObj.article.publication, 1, testDataObj.article.analysis.score));
+                done();
+            }catch(e){
+                done(e);
+            }
+
+        }, function(e){
+            done(e);
+        })
     });
 });

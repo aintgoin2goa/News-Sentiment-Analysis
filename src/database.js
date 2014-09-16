@@ -151,12 +151,43 @@ function seedPublications(){
 }
 
 function seed(){
-    debugger;
     var dfd = Q.defer();
     seedKeywords().then(seedPublications).then(function(){
         dfd.resolve();
     }).fail(function(err){
         dfd.reject(err);
+    });
+
+    return dfd.promise;
+}
+
+function allKeywords(){
+    return Q.nbind(Keyword.find, Keyword)({});
+}
+
+function allPublications(){
+    return Q.nbind(Publication.find, Publication)({});
+}
+
+function updatePublication(publicationId, articleCount, totalScore){
+   var dfd = Q.defer();
+    Publication.findOne({id: publicationId}, function(err, publication){
+        if(err){
+            dfd.reject(err);
+            return;
+        }
+
+        publication.totalScore = publication.totalScore + totalScore;
+        publication.articleCount = publication.articleCount + articleCount;
+        publication.averageScore = publication.totalScore / publication.articleCount;
+        publication.save(function(err){
+            if(err){
+                dfd.reject(err);
+                return;
+            }
+
+            dfd.resolve();
+        })
     });
 
     return dfd.promise;
@@ -171,6 +202,9 @@ module.exports = {
     saveArticle : saveArticle,
     saveOrUpdateWord : saveOrUpdateWord,
     articleCount : articleCount,
-    seed : seed
+    seed : seed,
+    allKeywords : allKeywords,
+    allPublications : allPublications,
+    updatePublication : updatePublication
 };
 

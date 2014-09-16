@@ -1,5 +1,6 @@
 {"article":
    { "date": "2014-08-12T22:23BST",
+     "publication": "guardian",
      "title": "UK steps up role in Iraq with move to aid Kurds and Yazidis against Isis",
      "analysis":
       { "score": -47,
