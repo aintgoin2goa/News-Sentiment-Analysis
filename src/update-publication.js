@@ -1,12 +1,16 @@
+var util = require('util');
+
 var Q = require('q');
-var config = require('./config.js');
+
 var update = require('./update.js');
 var database = require('./database.js');
 
 function Queue(slots, keywords, publication){
     this.slots = [];
-    this.slots.lenght = slots;
-    this.keywords = [];
+    this.slots.length = slots;
+    this.keywords = keywords.slice(0);
+    this.total = keywords.length;
+    this.finished = false;
     this.publication = publication;
     this.pending = [];
     this.count = 0;
@@ -21,15 +25,11 @@ Queue.prototype.tick = function(i){
         keyword;
 
     if(!queue.keywords.length){
-        Q.all(queue.pending).then(function(){
-            queue.onComplete.call(queue);
-        }, function(err){
-            queue.onError.call(queue, err);
-        });
+       queue.waitForEnd.call(queue);
         return;
     }
 
-    keyword = keywords.shift();
+    keyword = queue.keywords.shift();
     promise = update(queue.publication, keyword);
     queue.slots[i] = promise;
     queue.pending.push(promise);
@@ -39,6 +39,17 @@ Queue.prototype.tick = function(i){
     }, function(err){
        queue.onError.call(queue, err);
     });
+};
+
+Queue.prototype.waitForEnd = function(){
+    var queue = this;
+    if(queue.pending.length === queue.total && !queue.finished){
+        Q.all(queue.pending).then(function(){
+            queue.onComplete.call(queue);
+        }, function(err){
+            queue.onError.call(queue, err);
+        });
+    }
 };
 
 Queue.prototype.process = function(){
@@ -66,9 +77,14 @@ function updatePublication(publication){
         queue.on('error', function(){
             dfd.reject(err);
         });
-        queue.on('complete', function(count){
-           dfd.resolve(count);
+        queue.on('complete', function(added){
+            database.articleCount(publication).then(function(total){
+                dfd.resolve({added:added,total:total});
+            }, function(err){
+                dfd.reject(err);
+            })
         });
+        queue.process();
     });
 
     return dfd.promise;

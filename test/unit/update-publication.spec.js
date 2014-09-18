@@ -2,18 +2,20 @@ var expect = require('chai').expect;
 var sinon = require('sinon');
 var assert = require('assert');
 var path = require('path');
-var fs = require('fs');
 var loader = require('../helpers/moduleLoader.js');
 var Q = require('q');
 
 describe("updatePublication", function(){
 
-    var updateMock, updatePublication, configMock, databaseMock;
+    var updateMock, updatePublication, databaseMock;
 
     var keywords = [
         "economy",
         "israel",
-        "cameron"
+        "cameron",
+        "isis",
+        "ukraine",
+        "obama"
     ];
 
     var publication = 'guardian';
@@ -23,37 +25,44 @@ describe("updatePublication", function(){
 
     beforeEach(function(){
         updateMock = sinon.stub().returns(Q(addedCount));
-        configMock = {loadKeywords : sinon.stub().returns(Q(keywords))};
-        databaseMock = {articleCount : sinon.stub().returns(Q(articleCount))};
+        databaseMock = {articleCount : sinon.stub().returns(Q(articleCount)), allKeywords: sinon.stub().returns(Q(keywords))};
         updatePublication = loader.loadModule(
             'src/update-publication.js',
-            {'./update.js' : updateMock, './config.js': configMock, './database.js' : databaseMock},
+            {'./update.js' : updateMock, './database.js' : databaseMock},
             'update-publication.js'
         ).module.exports;
     });
 
-    it("Should load in the keywords list", function(done){
+   it('Should get all keywords from the database', function(done){
         updatePublication(publication).then(function(){
-            assert(configMock.loadKeywords.called);
-            done();
-        }, done);
-    });
-
-    it('Can call update.js with the current publication and each keyword', function(done){
-        updatePublication(publication).then(function(){
-            expect(updateMock.callCount).to.equal(keywords.length);
-            expect(updateMock.args[0][1]).to.equal(keywords[0]);
-            expect(updateMock.args[1][1]).to.equal(keywords[1]);
-            expect(updateMock.args[2][1]).to.equal(keywords[2]);
-            done();
-        }, done);
-    });
-
-    it('Should return some stats for number updated and new total number of articles in db', function(done){
-        updatePublication(publication).then(function(stats) {
             try{
-                expect(stats.publication).to.equal(publication);
-                expect(stats.added).to.equal(addedCount * keywords.length);
+                assert(databaseMock.allKeywords.called);
+                done();
+            }catch(e){
+                done(e);
+            }
+        }, done);
+   });
+
+    it('Should call update.js for for each keyword', function(done){
+        updatePublication(publication).then(function(){
+            try{
+                debugger;
+                expect(updateMock.callCount).to.equal(keywords.length);
+                for(var i= 0, l=keywords.length; i<l; i++){
+                    expect(updateMock.args[i][1]).to.equal(keywords[i]);
+                }
+                done();
+            }catch(e){
+                done(e);
+            }
+        }, done);
+    });
+
+    it('Should return the number of new articles added to the database and total article for that publication', function(done){
+        updatePublication(publication).then(function(stats){
+            try{
+               expect(stats.added).to.equal(addedCount * keywords.length);
                 expect(stats.total).to.equal(articleCount);
                 done();
             }catch(e){
