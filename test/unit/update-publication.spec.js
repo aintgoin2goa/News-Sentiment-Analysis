@@ -61,6 +61,7 @@ describe("updatePublication", function(){
 
     it('Should return the number of new articles added to the database and total article for that publication', function(done){
         updatePublication(publication).then(function(stats){
+            stats = JSON.parse(stats);
             try{
                expect(stats.added).to.equal(addedCount * keywords.length);
                 expect(stats.total).to.equal(articleCount);
