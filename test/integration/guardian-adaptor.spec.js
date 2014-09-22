@@ -12,15 +12,21 @@ describe("Guardian Adaptor", function(){
     });
 
     it("Should crawl the guardian site and return an array of urls matching a given keyword", function(done){
-        this.timeout(5000);
+        this.timeout(50000);
+        debugger;
         var crawlPath = path.join(baseUrl, 'crawl.js');
-        wrapper.execute(crawlPath, 'guardian', 'israel').done(function(data){
-            var urls = JSON.parse(data);
-            console.log(urls);
-            expect(urls).to.be.an.instanceof(Array);
-            expect(urls.length).to.be.above(0);
-            done();
-        });
+        wrapper.execute(crawlPath, 'guardian', 'israel').then(function(data){
+            try{
+                var urls = JSON.parse(data);
+                console.log(urls);
+                expect(urls).to.be.an.instanceof(Array);
+                expect(urls.length).to.be.above(0);
+                done();
+            }catch(e){
+                done(e);
+            }
+
+        }, done);
     });
 
     it("Should be able to visit a news page on the guardian and extact the title, date and content", function(done){

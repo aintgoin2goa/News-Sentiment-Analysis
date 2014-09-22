@@ -1,6 +1,6 @@
 
 exports.crawl = {
-    url : 'http://content.guardianapis.com/search?q={keyword}&from-date={date}&order-by=relevance',
+    url : 'http://content.guardianapis.com/search?q={keyword}&from-date={date}&order-by=relevance&api-key=ggrgqstehjn5rheez97ue42a',
     execute : function(){
         var content = page.plainText;
         var json = JSON.parse(content);
