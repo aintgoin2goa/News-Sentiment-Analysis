@@ -63,10 +63,12 @@ describe('UpdateAll', function(){
     it('Should compile the stats from each call and send them to notify.js', function(done){
         updateAll().then(function(){
             try{
-                var args = JSON.parse(notifyMock.lastCall.args[0]);
-                expect(args[publications[0].id]).to.deep.equal(stats);
-                expect(args[publications[1].id]).to.deep.equal(stats);
-                expect(args[publications[2].id]).to.deep.equal(stats);
+                var obj = JSON.parse(notifyMock.lastCall.args[0]),
+                    pub = obj.data.publications[0];
+                debugger;
+                expect(pub.publicationId).to.equal(publications[0].id);
+                expect(pub.total).to.equal(stats.total);
+                expect(pub.added).to.equal(stats.added);
                 done();
             }catch(e){
                 done(e);

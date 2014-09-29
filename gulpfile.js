@@ -13,7 +13,12 @@ gulp.task('test:int', function () {
         .pipe(mocha({reporter: 'spec'}));
 });
 
-gulp.task('test:unit:debug', function (cb) {
+gulp.task('test:adaptors', function () {
+    return gulp.src('test/adaptors/**/*.js', {read: false})
+        .pipe(mocha({reporter: 'spec'}));
+});
+
+gulp.task('test:unit:debug', function () {
     spawn('node', [
         '--debug-brk',
         path.join(__dirname, 'node_modules/gulp/bin/gulp.js'),
@@ -21,10 +26,18 @@ gulp.task('test:unit:debug', function (cb) {
     ], { stdio: 'inherit' });
 });
 
-gulp.task('test:int:debug', function (cb) {
+gulp.task('test:int:debug', function () {
     spawn('node', [
         '--debug-brk',
         path.join(__dirname, 'node_modules/gulp/bin/gulp.js'),
         'test:int'
+    ], { stdio: 'inherit' });
+});
+
+gulp.task('test:adaptors:debug', function () {
+    spawn('node', [
+        '--debug-brk',
+        path.join(__dirname, 'node_modules/gulp/bin/gulp.js'),
+        'test:adaptors'
     ], { stdio: 'inherit' });
 });

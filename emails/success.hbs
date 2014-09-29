@@ -1,0 +1,22 @@
+<p>Service has successfully updated, there are now  <b>{{total}}</b> articles in the database.</p>
+
+<h4>New Totals</h4>
+
+<table>
+    <thead>
+        <tr>
+            <th>Publication ID</th>
+            <th>Added</th>
+            <th>New Total</th>
+        </tr>
+    </thead>
+    <tbody>
+        {{#each publications}}
+            <tr>
+                <td>{{publicationId}}</td>
+                <td>{{added}}</td>
+                <td>{{total}}</td>
+            </tr>
+        {{/each}}
+    </tbody>
+</table>

@@ -13,7 +13,7 @@ function Queue(slots, publications){
     this.total = publications.length;
     this.finished = false;
     this.pending = [];
-    this.stats = {};
+    this.stats = {total:0, publications:[]};
 }
 
 var EventEmitter = require('events').EventEmitter;
@@ -34,7 +34,10 @@ Queue.prototype.tick = function(i){
     queue.slots[i] = promise;
     queue.pending.push(promise);
     promise.then(function(stats){
-        queue.stats[publication] = JSON.parse(stats);
+        stats = JSON.parse(stats);
+        stats.publicationId = publication;
+        queue.stats.publications.push(stats);
+        queue.stats.total += stats.total;
         queue.tick.call(queue, i);
     }, function(err){
         queue.onError.call(queue, err);
@@ -77,21 +80,41 @@ function updateAll(){
         var queue = new Queue(4, publications);
         queue.on('error', function(err){
             dfd.reject(err);
+            fail(err);
         });
         queue.on('complete', function(stats){
-            notify(JSON.stringify(stats)).then(function(){
+            var obj = {template:'success', data:stats};
+            notify(JSON.stringify(obj)).then(function(){
                 dfd.resolve();
             }, function(err){
                 dfd.reject(err);
+                fail(err);
             })
         });
 
         queue.process();
     }, function(err){
         dfd.reject(err);
+       fail(err);
     });
 
     return dfd.promise;
 }
 
-module.exports = updateAll;
+function fail(err){
+    var obj = {template:'failed', data:err};
+    notify(JSON.stringify(obj));
+}
+
+if(require.main === module){
+    updateAll().then(function(){
+        console.log("Update complete");
+        process.exit(0);
+    }, function(err){
+        console.error("update failed", err);
+        process.exit(1);
+    });
+}else{
+    module.exports = updateAll;
+}
+
