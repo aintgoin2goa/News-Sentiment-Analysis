@@ -18,6 +18,11 @@ gulp.task('test:adaptors', function () {
         .pipe(mocha({reporter: 'spec'}));
 });
 
+gulp.task('test:e2e', function () {
+    return gulp.src('test/e2e/**/*.js', {read: false})
+        .pipe(mocha({reporter: 'spec'}));
+});
+
 gulp.task('test:unit:debug', function () {
     spawn('node', [
         '--debug-brk',
@@ -39,5 +44,13 @@ gulp.task('test:adaptors:debug', function () {
         '--debug-brk',
         path.join(__dirname, 'node_modules/gulp/bin/gulp.js'),
         'test:adaptors'
+    ], { stdio: 'inherit' });
+});
+
+gulp.task('test:e2e:debug', function () {
+    spawn('node', [
+        '--debug-brk',
+        path.join(__dirname, 'node_modules/gulp/bin/gulp.js'),
+        'test:e2e'
     ], { stdio: 'inherit' });
 });

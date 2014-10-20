@@ -20,7 +20,7 @@ function init() {
 
 Wrapper.prototype.execute = function(){
     this.deferred = Q.defer();
-    var phantomPath = path.resolve(__dirname, '../bin/phantomjs');
+    var phantomPath = path.resolve(__dirname, '../node_modules/.bin/phantomjs');
     var args = Array.prototype.slice.call(arguments, 0);
     this.instance = spawn(phantomPath, args);
     this.instance.stdout.on('data', this.onResponse.bind(this));

@@ -1,5 +1,6 @@
 var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
+var Q = require('q');
 
 var articleSchema = new Schema({
     publication : String,
@@ -19,5 +20,9 @@ var articleSchema = new Schema({
         }
     }
 });
+
+articleSchema.statics.findByPublication = function findByPublication(publication){
+    return find({'publication':publication}).sort('-date').exec();
+};
 
 module.exports =  mongoose.model('Article', articleSchema);

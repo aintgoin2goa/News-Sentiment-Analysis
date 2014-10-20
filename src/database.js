@@ -100,9 +100,10 @@ function articleCount(publicationId){
 
 function seedKeywords(){
     var dfd = Q.defer(),
-        readFile = Q.nfbind(fs.readFile);
+        readFile = Q.nfbind(fs.readFile),
+        keywordsFile = path.resolve('./seed_data/keywords.txt');
 
-    readFile('./seed_data/keywords.txt', {encoding:'utf8'}).then(function(data){
+    readFile(keywordsFile, {encoding:'utf8'}).then(function(data){
         var keywords = data.split('\n'),
             promises = [];
 
@@ -151,6 +152,7 @@ function seedPublications(){
 }
 
 function seed(){
+    console.log('seed');
     var dfd = Q.defer();
     seedKeywords().then(seedPublications).then(function(){
         dfd.resolve();
