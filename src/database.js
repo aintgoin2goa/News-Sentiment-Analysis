@@ -152,7 +152,6 @@ function seedPublications(){
 }
 
 function seed(){
-    console.log('seed');
     var dfd = Q.defer();
     seedKeywords().then(seedPublications).then(function(){
         dfd.resolve();

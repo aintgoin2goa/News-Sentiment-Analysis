@@ -50,11 +50,11 @@ describe("phantomWrapper", function(){
     };
 
     it("should run phantomjs directly from it's own bin file", function(){
-        var phantomPath = path.resolve('./bin/phantomjs');
+        var phantomPath = path.resolve('./node_modules/.bin/phantomjs');
         setup();
 
         vm.runInNewContext(phantomWrapperScript, sandbox, 'proxy.js');
-        assert(stub.calledWith(phantomPath), 'expected spawn to be called with ' + phantomPath);
+        assert(stub.calledWith(phantomPath), 'expected spawn to be called with ' + phantomPath + " but was called with  " + stub.lastCall.args[0]);
     });
 
     it("should start phantomjs with the correct script, adaptor and keyword", function(){
