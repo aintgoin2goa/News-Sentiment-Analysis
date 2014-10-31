@@ -16,6 +16,7 @@ function connect(){
         dfd.reject(err);
     });
     mongoose.connection.on('open', function(){
+        console.log('connected to ' + name);
         dfd.resolve();
     });
     return dfd.promise;
@@ -98,28 +99,63 @@ function articleCount(publicationId){
     return Q.nbind(Article.count, Article)({publication:publicationId});
 }
 
+function addKeyword(value){
+    var dfd = Q.defer();
+    Keyword.count({keyword:value}, function(e, count){
+        if(e || count){
+           dfd.resolve();
+           return;
+        }
+
+        var keyword = new Keyword({keyword:value});
+        keyword.save(function(err){
+           if(err){
+               dfd.reject(err);
+           } else{
+               dfd.resolve();
+           }
+        });
+    });
+
+    return dfd.promise;
+}
+
+function addPublication(pub){
+    var dfd = Q.defer();
+    Publication.count({id:pub.id}, function(err, count){
+       if(err || count){
+           dfd.resolve();
+           return;
+       }
+
+       var publication = new Publication(pub);
+        publication.save(function(err){
+            if(err){
+                dfd.reject(err);
+            }else{
+                dfd.resolve();
+            }
+        });
+    });
+    return dfd.promise;
+}
+
 function seedKeywords(){
     var dfd = Q.defer(),
         readFile = Q.nfbind(fs.readFile),
         keywordsFile = path.resolve('./seed_data/keywords.txt');
 
-    readFile(keywordsFile, {encoding:'utf8'}).then(function(data){
-        var keywords = data.split('\n'),
-            promises = [];
-
-        keywords.forEach(function(value){
-             var keyword = new Keyword({keyword:value});
-             promises.push(Q.nbind(keyword.save, keyword)());
+    readFile(keywordsFile, {encoding:'utf8'})
+        .then(function(data){
+            var keywords = data.split('\n');
+            return Q.all(keywords.map(addKeyword));
+        })
+        .then(function(){
+           dfd.resolve();
+        })
+        .fail(function(err){
+            dfd.reject(err);
         });
-
-        return Q.all(promises);
-    })
-    .then(function(){
-       dfd.resolve();
-    })
-    .fail(function(err){
-        dfd.reject(err);
-    });
 
     return dfd.promise;
 }
@@ -131,14 +167,11 @@ function seedPublications(){
 
     readdir(directory)
         .then(function(files){
-            var promises = [];
-            files.forEach(function(file){
-                var data = require(path.resolve(directory, file)),
-                    publication = new Publication(data);
-
-                promises.push(Q.nbind(publication.save, publication)());
+            var pubData = files.map(function(file){
+                return require(path.resolve(directory, file));
             });
 
+            var promises = pubData.map(addPublication);
             return Q.all(promises);
         })
         .then(function(){

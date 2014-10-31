@@ -7,8 +7,8 @@ var Keyword = require('../../src/models/keyword.js');
 var Publication = require('../../src/models/publication.js');
 
 var child_process = require('child_process'),
-    spawn = child_process.spawn,
-    exec = child_process.exec;
+    exec = child_process.exec,
+    fork = child_process.fork;
 
 var expect = require('chai').expect;
 
@@ -18,8 +18,9 @@ describe('NSE E2E Test', function(){
 
     before(function(done){
         this.timeout(60*1000);
-        exec('node src/seed.js', function(){
+        exec('node src/seed.js', {env : {'NSE_DB_NAME' : 'nse_test'}}, function(e){
             console.log('Seed complete', arguments);
+            done();
         });
     });
 
@@ -31,22 +32,26 @@ describe('NSE E2E Test', function(){
     });
 
     it('Should run, grab content and save it in the DB', function(done){
+
         this.timeout(6*60*1000);
         var cwd = path.resolve('./src/');
-        var p = spawn('node', ['update-all.js'], {cwd:cwd});
+        var p = fork('./src/update-all.js', {cwd:cwd});
 
-        debugger;
         p.on('error', done);
         p.on('exit', function(code){
 
-            console.log('Process exited', code);
+            console.log('update-all.js Process exited', code);
             if(code !== 0){
                 done(new Error('Something went wrong...'))
+                return;
             }
 
 
             // there should be at least one new article for each publication
-            Publication.find({}, function(publications){
+            Publication.find({}, function(err, publications){
+                if(err){
+                    done(err);
+                }
                publications.forEach(function(publication, i){
                   Publication.where({'publication':publication}).count(function(err, count){
                       if(err){
