@@ -73,8 +73,12 @@ function getKeywords(){
 function updatePublication(publication){
     var dfd = Q.defer();
     getKeywords().then(function(keywords){
+        keywords = keywords.map(function(model){
+            return model.keyword;
+        });
+
         var queue = new Queue(4, keywords, publication);
-        queue.on('error', function(){
+        queue.on('error', function(err){
             dfd.reject(err);
         });
         queue.on('complete', function(added){

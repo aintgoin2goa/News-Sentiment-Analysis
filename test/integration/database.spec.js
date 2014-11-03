@@ -142,7 +142,7 @@ describe('Database', function(){
        .fail(done);
     });
 
-    it.only('Should be able to create keywords and publications documents from the seed data', function(done){
+    it('Should be able to create keywords and publications documents from the seed data', function(done){
         var keywords = fs.readFileSync('./seed_data/keywords.txt', {encoding:'utf8'}).split('\n');
         var pubsdir = './seed_data/publications/';
         var publicationData = fs.readdirSync(pubsdir).map(function(file){

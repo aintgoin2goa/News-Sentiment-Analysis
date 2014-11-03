@@ -45,15 +45,22 @@ Queue.prototype.tick = function(i){
 };
 
 Queue.prototype.waitForEnd = function(){
-    var queue = this;
-    if(queue.pending.length === queue.total && !queue.finished){
-        Q.all(queue.pending).then(function(){
-            queue.onComplete.call(queue);
-        }, function(err){
-            queue.onError.call(queue, err);
-        });
+    var queue = this,
+        func = function(){
+            Q.all(queue.pending).then(function(){
+                queue.onComplete.call(queue);
+            }, function(err){
+                queue.onError.call(queue, err);
+            });
+        },
+        called = false;
+
+    if(queue.pending.length === queue.total && !queue.finished && !called){
+        called = true;
+        func();
     }
 };
+
 
 Queue.prototype.process = function(){
     for(var i= 0, l=this.slots.length; i<l; i++){
@@ -72,7 +79,13 @@ Queue.prototype.onComplete = function(){
 
 function updateAll(){
     var dfd = Q.defer();
-    database.allPublications().then(function(publications){
+    database.connect().then(function(){
+        return database.allPublications();
+    }).then(function(publications){
+        if(!publications.length){
+            dfd.reject(new Error("No publications in database"));
+        }
+
         publications = publications.map(function(pub){
             return pub.id;
         });
@@ -80,22 +93,21 @@ function updateAll(){
         var queue = new Queue(4, publications);
         queue.on('error', function(err){
             dfd.reject(err);
-            fail(err);
         });
+
         queue.on('complete', function(stats){
             var obj = {template:'success', data:stats};
             notify(JSON.stringify(obj)).then(function(){
                 dfd.resolve();
             }, function(err){
-                dfd.reject(err);
-                fail(err);
-            })
+                // only notification failed, so still treat as success
+                dfd.resolve();
+            });
         });
 
         queue.process();
-    }, function(err){
-        dfd.reject(err);
-       fail(err);
+    }).fail(function(err){
+       dfd.reject(err);
     });
 
     return dfd.promise;
@@ -109,10 +121,15 @@ function fail(err){
 if(require.main === module){
     updateAll().then(function(){
         console.log("Update complete");
-        process.exit(0);
+        database.disconnect().then(function(){
+            process.exit(0);
+        });
     }, function(err){
         console.error("update failed", err);
-        process.exit(1);
+        database.disconnect().then(function(){
+            fail(err);
+            process.exit(1);
+        });
     });
 }else{
     module.exports = updateAll;

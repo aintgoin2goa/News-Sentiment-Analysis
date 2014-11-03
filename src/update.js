@@ -2,8 +2,8 @@ var Q = require('q');
 var path = require('path');
 
 var PhantomWrapper = require('./phantomWrapper.js');
-var crawl = path.resolve('phantom/crawl.js');
-var extract = path.resolve('phantom/extract/js');
+var crawl = path.resolve(__dirname, 'phantom/crawl.js');
+var extract = path.resolve(__dirname, 'phantom/extract/js');
 var filter = require('./filter.js');
 var save = require('./save.js');
 var analyze = require('./analyze.js');

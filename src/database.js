@@ -10,13 +10,16 @@ var Publication = require('./models/publication.js');
 
 function connect(){
     var dfd = Q.defer();
+    if(mongoose.connection.readyState > 0){
+        dfd.resolve();
+    }
+
     var name = process.env['NSE_DBNAME'] || 'nse_dev';
     mongoose.connect('mongodb://localhost:27017/' + name);
     mongoose.connection.on('error', function(err){
         dfd.reject(err);
     });
     mongoose.connection.on('open', function(){
-        console.log('connected to ' + name);
         dfd.resolve();
     });
     return dfd.promise;
