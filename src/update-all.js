@@ -1,6 +1,7 @@
 var util = require('util');
 
 var Q = require('q');
+var _ = require('lodash');
 
 var updatePublication = require('./update-publication.js');
 var database = require('./database.js');
@@ -44,22 +45,19 @@ Queue.prototype.tick = function(i){
     });
 };
 
-Queue.prototype.waitForEnd = function(){
-    var queue = this,
-        func = function(){
+(function(){
+    var _waitForEnd =  _.once(function(queue){
             Q.all(queue.pending).then(function(){
                 queue.onComplete.call(queue);
             }, function(err){
                 queue.onError.call(queue, err);
             });
-        },
-        called = false;
+        });
 
-    if(queue.pending.length === queue.total && !queue.finished && !called){
-        called = true;
-        func();
-    }
-};
+    Queue.prototype.waitForEnd = function(){
+        _waitForEnd(this);
+    };
+}());
 
 
 Queue.prototype.process = function(){

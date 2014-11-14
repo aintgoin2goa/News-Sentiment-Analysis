@@ -8,9 +8,10 @@ var Handlebars = require('handlebars');
 var readFile = Q.nfbind(fs.readFile);
 
 function loadTemplates(obj){
+    console.log('loadTemplates', path.resolve(__dirname, '../emails/' + obj.template + '.hbs'));
     return Q.all([
-        readFile(path.resolve('../emails/' + obj.template + '.hbs'), {encoding:'utf8'}),
-        readFile(path.resolve('../emails/' + obj.template + '_text.hbs'), {encoding:'utf8'})
+        readFile(path.resolve(__dirname, '../emails/' + obj.template + '.hbs'), {encoding:'utf8'}),
+        readFile(path.resolve(__dirname, '../emails/' + obj.template + '_text.hbs'), {encoding:'utf8'})
     ]);
 }
 
