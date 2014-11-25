@@ -71,7 +71,7 @@ describe('Notify', function(){
 
     });
 
-    it.only('Should accept a serialised success object and generate the html using the template and data given', function(done){
+    it('Should accept a serialised success object and generate the html using the template and data given', function(done){
         var expectedHTML = templates.success.html(successObj.data);
         var expectedText = templates.success.text(successObj.data);
         var expectedOptions = {

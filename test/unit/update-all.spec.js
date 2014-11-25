@@ -25,7 +25,8 @@ describe('UpdateAll', function(){
 
     beforeEach(function(){
         databaseMock = {
-           allPublications : sinon.stub().returns(Q(publications))
+            connect : sinon.stub().returns(Q(null)),
+            allPublications : sinon.stub().returns(Q(publications))
         };
         updatePublicationMock = sinon.stub().returns(Q(JSON.stringify(stats)));
         notifyMock = sinon.stub().returns(Q(null));
