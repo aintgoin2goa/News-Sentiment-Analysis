@@ -73,6 +73,7 @@ function getKeywords(){
 function updatePublication(publication){
     var dfd = Q.defer();
     getKeywords().then(function(keywords){
+        debugger;
         keywords = keywords.map(function(model){
             return model.keyword;
         });

@@ -10,12 +10,12 @@ describe("updatePublication", function(){
     var updateMock, updatePublication, databaseMock;
 
     var keywords = [
-        "economy",
-        "israel",
-        "cameron",
-        "isis",
-        "ukraine",
-        "obama"
+        {keyword:"economy"},
+        {keyword:"israel"},
+        {keyword:"cameron"},
+        {keyword:"isis"},
+        {keyword:"ukraine"},
+        {keyword:"obama"}
     ];
 
     var publication = 'guardian';
@@ -25,7 +25,11 @@ describe("updatePublication", function(){
 
     beforeEach(function(){
         updateMock = sinon.stub().returns(Q(addedCount));
-        databaseMock = {articleCount : sinon.stub().returns(Q(articleCount)), allKeywords: sinon.stub().returns(Q(keywords))};
+        databaseMock = {
+            connect : sinon.stub().returns(Q(null)),
+            articleCount : sinon.stub().returns(Q(articleCount)),
+            allKeywords: sinon.stub().returns(Q(keywords))
+        };
         updatePublication = loader.loadModule(
             'src/update-publication.js',
             {'./update.js' : updateMock, './database.js' : databaseMock},
@@ -47,10 +51,9 @@ describe("updatePublication", function(){
     it('Should call update.js for for each keyword', function(done){
         updatePublication(publication).then(function(){
             try{
-                debugger;
                 expect(updateMock.callCount).to.equal(keywords.length);
                 for(var i= 0, l=keywords.length; i<l; i++){
-                    expect(updateMock.args[i][1]).to.equal(keywords[i]);
+                    expect(updateMock.args[i][1]).to.equal(keywords[i].keyword);
                 }
                 done();
             }catch(e){
