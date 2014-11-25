@@ -8,7 +8,6 @@ var Handlebars = require('handlebars');
 var readFile = Q.nfbind(fs.readFile);
 
 function loadTemplates(obj){
-    console.log('loadTemplates', path.resolve(__dirname, '../emails/' + obj.template + '.hbs'));
     return Q.all([
         readFile(path.resolve(__dirname, '../emails/' + obj.template + '.hbs'), {encoding:'utf8'}),
         readFile(path.resolve(__dirname, '../emails/' + obj.template + '_text.hbs'), {encoding:'utf8'})
@@ -61,8 +60,7 @@ function notify(obj){
 
         options.text = content.text;
         options.html = content.html;
-        send(options).then(function(info){
-            dfd.resolve(info);
+        send(options).then(function(info){dfd.resolve(info);
         }, function(err){
             dfd.reject(err);
         })

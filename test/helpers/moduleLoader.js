@@ -33,7 +33,8 @@ exports.loadModule = function (filePath, mocks, filename) {
         setTimeout: setTimeout,
         setImmediate: setImmediate,
         process : process,
-        Buffer : Buffer
+        Buffer : Buffer,
+        '__dirname' : '.'
     };
 
     context.require.resolve = function(){
