@@ -15,6 +15,7 @@ function processUrls(urls, promises){
 }
 
 function filter(input){
+    console.log('filter ' + input);
     var urls = JSON.parse(input),
         promises = [],
         dfd = Q.defer(),
@@ -24,8 +25,9 @@ function filter(input){
         return Q.all(processUrls(urls, promises));
     })
     .then(function(results){
+            console.log('results', results);
         results.forEach(function(result, index){
-            if(result === true){
+            if(result === false){
                 filteredUrls.push(urls[index]);
             }
         });

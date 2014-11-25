@@ -31,10 +31,13 @@ Queue.prototype.tick = function(i){
     }
 
     publication = queue.publications.shift();
+    console.log('About to update ' + publication);
     promise = updatePublication(publication);
     queue.slots[i] = promise;
     queue.pending.push(promise);
     promise.then(function(stats){
+        console.log('update complete.  Stats:');
+        console.log(stats);
         stats = JSON.parse(stats);
         stats.publicationId = publication;
         queue.stats.publications.push(stats);
@@ -77,9 +80,11 @@ Queue.prototype.onComplete = function(){
 
 function updateAll(){
     var dfd = Q.defer();
+    console.log("Connecting to database " + process.env['NSE_DBNAME']);
     database.connect().then(function(){
         return database.allPublications();
     }).then(function(publications){
+
         if(!publications.length){
             dfd.reject(new Error("No publications in database"));
         }
@@ -94,6 +99,8 @@ function updateAll(){
         });
 
         queue.on('complete', function(stats){
+            console.log('Update complete.  Total stats: ');
+            console.log(stats);
             var obj = {template:'success', data:stats};
             notify(JSON.stringify(obj)).then(function(){
                 dfd.resolve();

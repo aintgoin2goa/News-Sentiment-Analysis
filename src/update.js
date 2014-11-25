@@ -3,7 +3,7 @@ var path = require('path');
 
 var PhantomWrapper = require('./phantomWrapper.js');
 var crawl = path.resolve(__dirname, 'phantom/crawl.js');
-var extract = path.resolve(__dirname, 'phantom/extract/js');
+var extract = path.resolve(__dirname, 'phantom/extract.js');
 var filter = require('./filter.js');
 var save = require('./save.js');
 var analyze = require('./analyze.js');
@@ -19,9 +19,11 @@ function process(urls, publication){
 }
 
 function processUrl(url, publication){
+    console.log('process ' + url + ' from ' + publication);
     var dfd = Q.defer();
     new PhantomWrapper().execute(extract, publication, url)
         .then(function(article){
+            console.log('article data extracted for ' + url);
             return analyze(article, publication);
         })
         .then(save)
@@ -36,10 +38,13 @@ function processUrl(url, publication){
 }
 
 function update(publication, keyword){
+    console.log('update', publication, keyword);
     var dfd = Q.defer();
     new PhantomWrapper().execute(crawl, publication, keyword)
         .then(filter)
         .then(function(urls){
+            console.log(' urls:');
+            console.log(urls);
             return process(urls, publication)
         })
         .then(function(results){
